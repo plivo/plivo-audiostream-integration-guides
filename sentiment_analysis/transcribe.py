@@ -74,13 +74,13 @@ async def start_transcribe(call_uuid):
     outbound_raw_file = f"{stream_id}_outbound.raw"
     if check_file_exists(outbound_raw_file):
         outbound_file = convert_audio(outbound_raw_file)
-        transcribe(outbound_file, 'plivo-recordings-dev', outbound_file.split('.')[0])
+        transcribe(outbound_file, '<bucket_name>', outbound_file.split('.')[0])
 
     inbound_raw_file = f"{stream_id}_inbound.raw"
     if check_file_exists(inbound_raw_file):
         inbound_file = convert_audio(inbound_raw_file)
         print(inbound_file)
-        transcribe(inbound_file, 'plivo-recordings-dev', inbound_file.split('.')[0])
+        transcribe(inbound_file, '<bucket_name>', inbound_file.split('.')[0])
 
 
 def check_file_exists(file_name):
