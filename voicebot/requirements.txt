@@ -1,0 +1,5 @@
+websockets==11.0.3
+pydub==0.25.1
+deepgram-sdk==2.0.1
+openai==0.27.6
+requests==2.31.0
