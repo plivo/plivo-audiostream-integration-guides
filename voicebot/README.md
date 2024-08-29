@@ -11,71 +11,71 @@ This project demonstrates a proof of concept (POC) for integrating Plivo's audio
 5. Convert the response to speech using ElevenLabs.
 6. Send the converted speech back to Plivo.
 
-## Requirements
+### Prerequisites
+Sign up for the following services and get an API key for each:
+* [Deepgram](https://console.deepgram.com/signup)
+* [OpenAI](https://platform.openai.com/signup)
+* [ElevenLabs](https://elevenlabs.io/app/sign-up)
 
-- Plivo API Key
-- Deepgram API Key
-- OpenAI API Key
-- ElevenLabs API Key
+### How to setup locally?
 
-## Installation
+### 1. Create a virtual environment named `venv`
+```
+pip install virtualenv
+virtualenv -p /usr/bin/python2 venv
+source venv/bin/activate
+```
 
-1. Clone the repository:
+### 2. Install requirements: 
+```
+pip install -r requirements.txt`
+```
 
-   ```bash
-   git clone https://github.com/plivo/plivo-audiostream-integration-guides.git
-   cd voicebot
+### 3. Start an [ngrok](https://ngrok.com) tunnel for port `3000`:
 
-2. Install required packages:
-    ```bash
-    pip install -r requirements.txt
-    ```
-   
-## Running the Server
+```
+ngrok http 3000
+```
 
-1. Replace the placeholders in the script with your actual API keys:
+As we're hosting the app locally, we will use tunneling service like ngrok so that Plivo can forward audio to the app.
 
-   - YOUR_DEEPGRAM_API_KEY
-   - YOUR_OPENAI_API_KEY
-   - YOUR_ELEVENLABS_API_KEY
+### 4. Install 'ffmpeg'
+FFmpeg is a versatile open-source software suite for processing, converting, and streaming audio and video files. Please visit [here](https://www.ffmpeg.org/download.html) to download and install
 
-2. Run the server:
-    ```bash
-    python server.py
-    ```
-   The server will start on `ws://localhost:5678`.
+### 5. Configure Environment Variables
+Update `config.json` to add uour credentials:
+```
+{
+    "auth_id": "your_auth_id",
+    "auth_token": "your_auth_token",
+    "deepgram_api_key": "your_deepgram_api_key",
+    "openai_api_key": "your_openai_api_key",
+    "elevenlabs_api_key": "your_elevenlabs_api_key"
+}
+```
 
-## Making the Server Publicly Accessible
+### 6. Define your chatbot's behavior
+In `server.py`, you can define the characteristics of your voice bot by updating the **system_msg**.
+```
+system_msg = """You are John Doe, a chatbot assistant that helps in resolving general queries related to any fields.
+When someone says hello, you will greet them and answer their questions in a polite way.
+"""
+```
+A system message in ChatGPT provides instructions that guide the behavior, tone, and style of the model, ensuring consistent and contextually appropriate responses throughout the conversation. It's crucial for setting the model's role and defining the interaction parameters, helping tailor the AI's output to specific use cases or user requirements.
 
-To make your local server accessible over the internet, you can use tools like ngrok or localtunnel. These tools create a secure tunnel to your local server and provide a public URL that you can use for testing.
+### 7. Start your server
+```
+python server.py
+```
 
-### Using ngrok
+### 8. Configure Incoming phone number
+Configure an active phone number by using  [Plivo Console](https://console.plivo.com/active-phone-numbers/)
 
-1. Install ngrok:
-    ```bash
-    brew install ngrok  # macOS
-    # or download from https://ngrok.com/download and follow the instructions for your OS
-    ```
+You can also execute below command to configure your number
+```commandline
+ python number_setup.py <your-plivo-number> <webserver-socket-url-exposed-ushing-ngrok>
+```
 
-2. Start ngrok to forward the WebSocket server port:
-    ```bash
-    ngrok http 5678
-    ```
-
-3. ngrok will provide a public URL (e.g., `http://your-ngrok-subdomain.ngrok.io`). Use this URL to configure Plivo and connect clients.
-
-### Using localtunnel
-
-1. Install localtunnel:
-    ```bash
-    npm install -g localtunnel
-    ```
-
-2. Start localtunnel to forward the WebSocket server port:
-    ```bash
-    lt --port 5678
-    ```
-
-3. localtunnel will provide a public URL (e.g., `http://your-subdomain.loca.lt`). Use this URL to configure Plivo and connect clients.
-
-
+## Application Workflow
+Voicebot coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
+![Voicebot Flow](./Workflow.png)

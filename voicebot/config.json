@@ -1,0 +1,7 @@
+{
+    "auth_id": "your_auth_id",
+    "auth_token": "your_auth_token",
+    "deepgram_api_key": "your_deepgram_api_key",
+    "openai_api_key": "your_openai_api_key",
+    "elevenlabs_api_key": "your_elevenlabs_api_key"
+}

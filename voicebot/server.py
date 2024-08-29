@@ -8,16 +8,20 @@ from deepgram import Deepgram
 import openai
 import requests
 
-# Your API keys
-DEEPGRAM_API_KEY = 'YOUR_DEEPGRAM_API_KEY'
-OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY'
-ELEVENLABS_API_KEY = 'YOUR_ELEVENLABS_API_KEY'
+CONFIG = {}
+
+
+def load_config(file_path='config.json'):
+    global CONFIG
+    with open(file_path, 'r') as f:
+        CONFIG = json.load(f)
+
 
 # Initialize Deepgram SDK
-deepgram = Deepgram(DEEPGRAM_API_KEY)
+deepgram = Deepgram(CONFIG['deepgram_api_key'])
 
 # Configure OpenAI
-openai.api_key = OPENAI_API_KEY
+openai.api_key = CONFIG['openai_api_key']
 
 messages = []
 
@@ -48,7 +52,7 @@ async def transcribe_audio(audio_data):
 async def text_to_speech(text):
     url = "https://api.elevenlabs.io/v1/text-to-speech"
     headers = {
-        'xi-api-key': ELEVENLABS_API_KEY,
+        'xi-api-key': CONFIG['elevenlabs_api_key'],
         'Content-Type': 'application/json'
     }
     data = {
@@ -139,6 +143,7 @@ async def router(websocket, path):
 
 
 def main():
+    load_config()
     server = websockets.serve(router, 'localhost', 5678)
     asyncio.get_event_loop().run_until_complete(server)
     asyncio.get_event_loop().run_forever()
