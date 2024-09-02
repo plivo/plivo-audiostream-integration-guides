@@ -79,3 +79,6 @@ You can also execute below command to configure your number
 ## Application Workflow
 Voicebot coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
 ![Voicebot Flow](./Workflow.png)
+
+## Logs
+![Logs](./demo.gif)

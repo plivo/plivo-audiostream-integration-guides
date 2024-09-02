@@ -2,152 +2,231 @@ import asyncio
 import base64
 import json
 import sys
+import webrtcvad
 import websockets
-from pydub import AudioSegment
 from deepgram import Deepgram
-import openai
-import requests
+import io
+import traceback
+import numpy as np
+import wave
+from openai import OpenAI
+from elevenlabs import VoiceSettings
+from elevenlabs.client import ElevenLabs
 
-CONFIG = {}
+
+# Load the configuration from a JSON file (API keys, settings, etc.)
+def load_config(file_path='config.json'):
+    global CONFIG
+    with open(file_path, 'r') as f:
+        CONFIG = json.load(f)
+    return CONFIG
 
 
+# Initialize configuration
+CONFIG = load_config()
+
+# Create clients for Deepgram, OpenAI, and ElevenLabs APIs using keys from config
+dg_client = Deepgram(CONFIG['deepgram_api_key'])
+openai_client = OpenAI(api_key=CONFIG['openai_api_key'])
+tts_client = ElevenLabs(api_key=CONFIG['elevenlabs_api_key'])
+
+# Initialize message list with system instructions for ChatGPT
+messages = []
+
+# System instructions for the assistant's personality and tone
+system_msg = """Your name is Matilda. Matilda is a warm and friendly voicebot designed to have pleasant and engaging 
+conversations with customers. Matilda's primary purpose is to greet customers in a cheerful and polite manner whenever 
+they say 'hello' or any other greeting. She should respond with kindness, using a welcoming tone to make the customer 
+feel valued and appreciated.
+
+Matilda should always use positive language and maintain a light, conversational tone throughout the interaction. Her 
+responses should be concise, friendly, and focused on making the customer feel comfortable and engaged. She should avoid 
+overly complex language and strive to keep the conversation pleasant and easy-going."""
+
+# Add system message to conversation history
+messages.append({"role": "system", "content": system_msg})
+
+
+# Load config (to avoid repetition in case of reloading config later)
 def load_config(file_path='config.json'):
     global CONFIG
     with open(file_path, 'r') as f:
         CONFIG = json.load(f)
 
 
-# Initialize Deepgram SDK
-deepgram = Deepgram(CONFIG['deepgram_api_key'])
+# Transcribes audio to text using Deepgram API
+async def transcribe_audio(audio_chunk, channels=1, sample_width=2, frame_rate=8000):
+    try:
+        # Convert audio chunk into a NumPy array
+        audio_data = np.frombuffer(audio_chunk, dtype=np.int16)
 
-# Configure OpenAI
-openai.api_key = CONFIG['openai_api_key']
+        # Create an in-memory BytesIO object for WAV file format
+        wav_io = io.BytesIO()
 
-messages = []
+        # Write audio data as WAV format into BytesIO
+        with wave.open(wav_io, 'wb') as wav_file:
+            wav_file.setnchannels(channels)
+            wav_file.setsampwidth(sample_width)
+            wav_file.setframerate(frame_rate)
+            wav_file.writeframes(audio_data.tobytes())
 
-system_msg = """You are Plivo, a chatbot assistant that helps in resolving general queries related to any fields.
-When someone says hello, you will greet them and answer their questions in a polite way.
-"""
+        # Reset the stream position of the in-memory WAV file
+        wav_io.seek(0)
 
-messages.append({"role": "system", "content": system_msg})
+        # Send the audio to Deepgram for transcription
+        response = await dg_client.transcription.prerecorded({
+            'buffer': wav_io,  # Audio data in bytearray format
+            'mimetype': 'audio/wav'
+        }, {
+            'punctuate': True  # Enables punctuation in transcription
+        })
+
+        # Extract the transcription result from the response
+        transcription = response['results']['channels'][0]['alternatives'][0]['transcript']
+
+        if transcription != '':
+            print("Transcription: ", transcription)
+
+        return transcription
+    except Exception as e:
+        print("An error occurred during transcription:")
+        traceback.print_exc()
 
 
-async def generate_response(input_message):
-    messages.append({"role": "user", "content": input_message})
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+# Generate a response using GPT-3.5 and send the reply via Plivo WebSocket
+async def generate_response(input_text, plivo_ws):
+    # Append user input to the conversation history
+    messages.append({"role": "user", "content": input_text})
+
+    # Call the OpenAI API to generate a conversational response
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
         messages=messages
     )
-    reply = response.choices[0].message['content']
+
+    # Extract the assistant's response from the API call
+    reply = response.choices[0].message.content
+
+    # Append assistant response to the conversation history
     messages.append({"role": "assistant", "content": reply})
-    return reply
+
+    print("ChatGPT Response: ", reply)
+
+    # Convert the response into speech and send via WebSocket
+    await text_to_speech_file(reply, plivo_ws)
 
 
-async def transcribe_audio(audio_data):
-    response = await deepgram.transcription.prerecorded({'buffer': audio_data, 'mimetype': 'audio/wav'},
-                                                        {'punctuate': True})
-    return response['results']['channels'][0]['alternatives'][0]['transcript']
+# Converts text to speech using ElevenLabs API and sends it via Plivo WebSocket
+async def text_to_speech_file(text: str, plivo_ws):
+    # Call ElevenLabs API to convert text into speech
+    response = tts_client.text_to_speech.convert(
+        voice_id="XrExE9yKIg1WjnnlVkGX",  # Using a pre-made voice (Adam)
+        output_format="ulaw_8000",  # 8kHz audio format
+        text=text,
+        model_id="eleven_turbo_v2_5",
+        voice_settings=VoiceSettings(
+            stability=0.0,
+            similarity_boost=1.0,
+            style=0.0,
+            use_speaker_boost=True,
+        ),
+    )
 
+    # Collect the audio data from the response
+    output = bytearray(b'')
+    for chunk in response:
+        if chunk:
+            output.extend(chunk)
 
-async def text_to_speech(text):
-    url = "https://api.elevenlabs.io/v1/text-to-speech"
-    headers = {
-        'xi-api-key': CONFIG['elevenlabs_api_key'],
-        'Content-Type': 'application/json'
-    }
-    data = {
-        "text": text,
-        "voice_settings": {
-            "stability": 0.75,
-            "similarity_boost": 0.75
+    # Encode the audio data in Base64 format
+    encode = base64.b64encode(output).decode('utf-8')
+
+    # Send the audio data via WebSocket to Plivo
+    await plivo_ws.send(json.dumps({
+        "event": "playAudio",
+        "media": {
+            "contentType": "audio/x-mulaw",
+            "sampleRate": 8000,
+            "payload": encode
         }
-    }
-    response = requests.post(url, headers=headers, json=data)
-    return base64.b64encode(response.content).decode('utf-8')
+    }))
 
 
+# Handles Plivo WebSocket communication for receiving and processing audio
 async def plivo_handler(plivo_ws):
-    audio_queue = asyncio.Queue()
-    streamId_queue = asyncio.Queue()
+    async def plivo_receiver(plivo_ws, sample_rate=8000, silence_threshold=0.5):
+        print('Plivo receiver started')
 
-    async def plivo_receiver(plivo_ws):
-        print('plivo_receiver started')
-        inbuffer = bytearray(b'')
-        latest_inbound_timestamp = 0
-        inbound_chunks_started = False
+        # Initialize voice activity detection (VAD) with sensitivity level
+        vad = webrtcvad.Vad(1)  # Level 1 is least sensitive
 
-        async for message in plivo_ws:
-            try:
-                data = json.loads(message)
-                if data['event'] == 'start':
-                    start = data['start']
-                    streamId = start['streamId']
-                    streamId_queue.put_nowait(streamId)
+        inbuffer = bytearray(b'')  # Buffer to hold received audio chunks
+        silence_start = 0  # Track when silence begins
+        chunk = None  # Audio chunk
 
-                if data['event'] == 'media':
-                    media = data['media']
-                    chunk = base64.b64decode(media['payload'])
-                    if media['track'] == 'inbound':
-                        if inbound_chunks_started:
-                            if latest_inbound_timestamp + 20 < int(media['timestamp']):
-                                bytes_to_fill = 8 * (int(media['timestamp']) - (latest_inbound_timestamp + 20))
-                                inbuffer.extend(b'\xff' * bytes_to_fill)
-                        else:
-                            inbound_chunks_started = True
-                            latest_inbound_timestamp = int(media['timestamp']) - 20
-                        latest_inbound_timestamp = int(media['timestamp'])
+        try:
+            async for message in plivo_ws:
+                try:
+                    # Decode incoming messages from the WebSocket
+                    data = json.loads(message)
+
+                    # If 'media' event, process the audio chunk
+                    if data['event'] == 'media':
+                        media = data['media']
+                        chunk = base64.b64decode(media['payload'])
                         inbuffer.extend(chunk)
 
-                if data['event'] == 'stop':
-                    break
+                    # If 'stop' event, end receiving process
+                    if data['event'] == 'stop':
+                        break
 
-                # Process buffer for voice activity detection
-                audio_segment = AudioSegment(
-                    data=inbuffer,
-                    sample_width=1,
-                    frame_rate=8000,
-                    channels=1
-                )
-                if is_silent(audio_segment, 500):
-                    audio_data = inbuffer[:]
-                    inbuffer = bytearray(b'')
-                    transcription = await transcribe_audio(audio_data)
-                    chatgpt_response = await generate_response(transcription)
-                    tts_audio = await text_to_speech(chatgpt_response)
-                    await plivo_ws.send(json.dumps({
-                        "event": "playAudio",
-                        "media": {
-                            "contentType": "raw",
-                            "sampleRate": 8000,
-                            "payload": tts_audio
-                        }
-                    }))
+                    if chunk is None:
+                        continue
 
-            except Exception as e:
-                print(f"Error processing message: {e}")
+                    # Check if the chunk contains speech or silence
+                    is_speech = vad.is_speech(chunk, sample_rate)
 
+                    if not is_speech:  # Detected silence
+                        silence_start += 0.2  # Increment silence duration (200ms steps)
+                        if silence_start >= silence_threshold:  # If silence exceeds threshold
+                            if len(inbuffer) > 2048:  # Process buffered audio if large enough
+                                transcription = await transcribe_audio(inbuffer)
+                                if transcription != '':
+                                    await generate_response(transcription, plivo_ws)
+                            inbuffer = bytearray(b'')  # Clear buffer after processing
+                            silence_start = 0  # Reset silence timer
+                    else:
+                        silence_start = 0  # Reset if speech is detected
+                except Exception as e:
+                    print(f"Error processing message: {e}")
+                    traceback.print_exc()
+        except websockets.exceptions.ConnectionClosedError as e:
+            print(f"Websocket connection closed")
+        except Exception as e:
+            print(f"Error processing message: {e}")
+            traceback.print_exc()
+
+    # Start the receiver for WebSocket messages
     await plivo_receiver(plivo_ws)
 
 
-def is_silent(audio_segment, pause_length_ms):
-    silence_threshold = -40.0  # Adjust threshold as necessary
-    silent_chunks = [chunk for chunk in audio_segment[::20] if chunk.dBFS < silence_threshold]
-    silent_duration_ms = len(silent_chunks) * 20
-    return silent_duration_ms >= pause_length_ms
-
-
+# Router to handle incoming WebSocket connections and routes them to plivo_handler
 async def router(websocket, path):
     if path == '/stream':
-        print('plivo connection incoming')
+        print('Plivo connection incoming')
         await plivo_handler(websocket)
 
 
+# Main function to start the WebSocket server
 def main():
-    load_config()
-    server = websockets.serve(router, 'localhost', 5678)
+    # Start the WebSocket server on localhost port 8765
+    server = websockets.serve(router, 'localhost', 8765)
+
+    # Run the event loop for the WebSocket server
     asyncio.get_event_loop().run_until_complete(server)
     asyncio.get_event_loop().run_forever()
 
 
+# Entry point for running the script
 if __name__ == '__main__':
     sys.exit(main() or 0)
