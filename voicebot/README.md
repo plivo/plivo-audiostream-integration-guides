@@ -22,7 +22,7 @@ Sign up for the following services and get an API key for each:
 ### 1. Create a virtual environment named `venv`
 ```
 pip install virtualenv
-virtualenv -p /usr/bin/python2 venv
+virtualenv -p /usr/bin/python3 venv
 source venv/bin/activate
 ```
 
