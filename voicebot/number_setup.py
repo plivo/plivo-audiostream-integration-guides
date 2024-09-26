@@ -31,7 +31,7 @@ def upload_xml(xml_string):
 
     tree.write('voicebot.xml', encoding='utf-8', xml_declaration=True)
 
-    url = "http://plivobin-prod-usw.plivops.com/api/v1/xml"
+    url = "https://gist.githubusercontent.com/monalisa/2decf6c462d9b4418f2/raw/"
 
     payload = {}
     files = [
