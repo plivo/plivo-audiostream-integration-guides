@@ -1,13 +1,13 @@
 # Plivo Audio Streaming Integration with Deepgram, OpenAI, and ElevenLabs
 
-This project demonstrates a proof of concept (POC) for integrating Plivo's audio streaming with Deepgram for transcription, OpenAI's GPT-3.5-turbo for conversational responses, and ElevenLabs for text-to-speech conversion. The system is designed to act as a general assistant that can transcribe live audio, respond to queries, and convert responses back to audio.
+This project demonstrates a proof of concept (POC) for integrating Plivo's audio streaming with Deepgram for transcription, OpenAI for conversational responses, and ElevenLabs for text-to-speech conversion. The system is designed to act as a general assistant that can transcribe live audio, respond to queries, and convert responses back to audio.
 
 ## Features
 
 1. Receive audio streaming data from Plivo through an exposed websocket.
 2. Buffer audio until a pause of more than 500ms is detected using voice activity detection.
 3. Send the buffered audio to Deepgram for transcription.
-4. Send the transcription to ChatGPT (using GPT-3.5-turbo) to generate a response.
+4. Send the transcription to OpenAI to generate a response.
 5. Convert the response to speech using ElevenLabs.
 6. Send the converted speech back to Plivo.
 
@@ -61,7 +61,7 @@ system_msg = """You are John Doe, a chatbot assistant that helps in resolving ge
 When someone says hello, you will greet them and answer their questions in a polite way.
 """
 ```
-A system message in ChatGPT provides instructions that guide the behavior, tone, and style of the model, ensuring consistent and contextually appropriate responses throughout the conversation. It's crucial for setting the model's role and defining the interaction parameters, helping tailor the AI's output to specific use cases or user requirements.
+A system message in OpenAI provides instructions that guide the behavior, tone, and style of the model, ensuring consistent and contextually appropriate responses throughout the conversation. It's crucial for setting the model's role and defining the interaction parameters, helping tailor the AI's output to specific use cases or user requirements.
 
 ### 7. Start your server
 ```
