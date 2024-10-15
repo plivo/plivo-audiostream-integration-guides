@@ -30,7 +30,7 @@ dg_client = Deepgram(CONFIG['deepgram_api_key'])
 openai_client = OpenAI(api_key=CONFIG['openai_api_key'])
 tts_client = ElevenLabs(api_key=CONFIG['elevenlabs_api_key'])
 
-# Initialize message list with system instructions for ChatGPT
+# Initialize message list with system instructions for OpenAI
 messages = []
 
 # System instructions for the assistant's personality and tone
@@ -93,7 +93,7 @@ async def transcribe_audio(audio_chunk, channels=1, sample_width=2, frame_rate=8
         traceback.print_exc()
 
 
-# Generate a response using GPT-3.5 and send the reply via Plivo WebSocket
+# Generate a response using OpenAI and send the reply via Plivo WebSocket
 async def generate_response(input_text, plivo_ws):
     # Append user input to the conversation history
     messages.append({"role": "user", "content": input_text})
@@ -110,7 +110,7 @@ async def generate_response(input_text, plivo_ws):
     # Append assistant response to the conversation history
     messages.append({"role": "assistant", "content": reply})
 
-    print("ChatGPT Response: ", reply)
+    print("OpenAI Response: ", reply)
 
     # Convert the response into speech and send via WebSocket
     await text_to_speech_file(reply, plivo_ws)
