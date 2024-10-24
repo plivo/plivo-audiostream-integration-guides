@@ -31,13 +31,14 @@ source venv/bin/activate
 pip install -r requirements.txt`
 ```
 
-### 3. Start an [ngrok](https://ngrok.com) tunnel for port `3000`:
+### 3. Start an [ngrok](https://ngrok.com) tunnel for port `5000`:
+As we are running this application locally, we'll need to open a tunnel to forward requests to the local development server. In this setup, we are using ngrok.
 
+Open terminal and run:
 ```
-ngrok http 3000
+ngrok http 5000
 ```
-
-As we're hosting the app locally, we will use tunneling service like ngrok so that Plivo can forward audio to the app.
+Once the tunnel has been opened, copy the Forwarding URL. It will look something like: https://[your-ngrok-subdomain].ngrok.app (or https://[your-ngrok-subdomain].ngrok-free.app if you are using free version). You will need this when creating the Plivo Answer XML.
 
 ### 4. Install 'ffmpeg'
 FFmpeg is a versatile open-source software suite for processing, converting, and streaming audio and video files. Please visit [here](https://www.ffmpeg.org/download.html) to download and install
@@ -54,6 +55,7 @@ Update `config.json` to add uour credentials:
     "elevenlabs_api_key": "your_elevenlabs_api_key"
 }
 ```
+If you do not have a GitHub token, you can generate one by following steps mentioned [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). When creating the token, please make sure that it has Read and Write permission for Gists
 
 ### 6. Define your chatbot's behavior
 In `server.py`, you can define the characteristics of your voice bot by updating the **system_msg**.
@@ -74,8 +76,12 @@ Configure an active phone number by using  [Plivo Console](https://console.plivo
 
 You can also execute below command to configure your number
 ```commandline
- python number_setup.py <your-plivo-number> <webserver-socket-url-exposed-ushing-ngrok>
+ python number_setup.py <your-plivo-number> <webserver-socket-url-exposed-using-ngrok>
 ```
+In the command, replace "<your-plivo-number>" with your Plivo number and "<webserver-socket-url-exposed-ushing-ngrok>" with the Forwarding URL generated in step 3.
+
+### 9. Place the call
+Place call on the Plivo number that we configured in the above step to talk to your VoiceBot 🤖.
 
 ## Application Workflow
 Voicebot coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
