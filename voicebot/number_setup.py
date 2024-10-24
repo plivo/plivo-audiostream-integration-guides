@@ -25,31 +25,49 @@ def create_xml(ws_url):
 
 
 def upload_xml(xml_string):
-    root = ET.fromstring(xml_string)
+    # Gist API endpoint
+    url = "https://api.github.com/gists"
 
-    tree = ET.ElementTree(root)
+    # Headers for authorization
+    headers = {
+        "Authorization": f"token {CONFIG['github_token']}",
+        "Accept": "application/vnd.github.v3+json"
+    }
 
-    tree.write('voicebot.xml', encoding='utf-8', xml_declaration=True)
+    filename = "voicebot.xml"  # Change this to your desired filename
 
-    url = "https://gist.githubusercontent.com/monalisa/2decf6c462d9b4418f2/raw/"
+    # Gist payload
+    data = {
+        "description": "XML file created via Python script",
+        "public": False,  # Set to True if you want the Gist to be public
+        "files": {
+            filename: {
+                "content": xml_string
+            }
+        }
+    }
 
-    payload = {}
-    files = [
-        ('file', ('voicebot.xml', open('voicebot.xml', 'rb'), 'text/xml'))
-    ]
+    response = requests.post(url, headers=headers, data=json.dumps(data))
 
-    response = requests.request("POST", url, data=payload, files=files)
+    if response.status_code == 201:
+        gist_info = response.json()
 
-    if response.status_code == 200:
-        return True
-    return False
+        # Extract the raw_url dynamically using the filename
+        raw_url = gist_info['files'][filename]['raw_url']
+        return True, raw_url
+    else:
+        print(f"Failed to create Gist. Status Code: {response.status_code}")
+        print(response.text)
+        return False, ''
 
 
-def create_application():
+def create_application(xml_url):
     client = plivo.RestClient(CONFIG['auth_id'], CONFIG['auth_token'])
     response = client.applications.create(
-        app_name='voice-bot-application',
-        answer_url='https://plivobin-prod-usw.plivops.com/api/v1/voicebot.xml', )
+        app_name='voice-bot-application',  # Change this to your desired application name
+        answer_url=xml_url,
+        answer_method='GET'
+    )
 
     return response['app_id']
 
@@ -74,9 +92,10 @@ if __name__ == "__main__":
     load_config()
 
     xmlString = create_xml(url)
-    xmlUploaded = upload_xml(xmlString)
+    xmlUploaded, xml_url = upload_xml(xmlString)
     if xmlUploaded:
-        appId = create_application()
+        appId = create_application(xml_url)
         update_phone_number(phoneNumber, appId)
-
-    print("Number setup completed")
+        print("Number setup completed")
+    else:
+        print("Number setup failed as xml could not be uploaded")
