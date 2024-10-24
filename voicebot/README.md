@@ -76,9 +76,9 @@ Configure an active phone number by using  [Plivo Console](https://console.plivo
 
 You can also execute below command to configure your number
 ```commandline
- python number_setup.py <your-plivo-number> <webserver-socket-url-exposed-using-ngrok>
+ python number_setup.py your-plivo-number webserver-socket-url-exposed-using-ngrok
 ```
-In the command, replace "<your-plivo-number>" with your Plivo number and "<webserver-socket-url-exposed-ushing-ngrok>" with the Forwarding URL generated in step 3.
+In the command, replace "your-plivo-number" with your Plivo number and "webserver-socket-url-exposed-using-ngrok" with the Forwarding URL generated in step 3.
 
 ### 9. Place the call
 Place call on the Plivo number that we configured in the above step to talk to your VoiceBot 🤖.
