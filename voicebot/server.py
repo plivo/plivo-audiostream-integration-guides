@@ -219,8 +219,8 @@ async def router(websocket, path):
 
 # Main function to start the WebSocket server
 def main():
-    # Start the WebSocket server on localhost port 8765
-    server = websockets.serve(router, 'localhost', 8765)
+    # Start the WebSocket server on localhost port 5000
+    server = websockets.serve(router, 'localhost', 5000)
 
     # Run the event loop for the WebSocket server
     asyncio.get_event_loop().run_until_complete(server)
