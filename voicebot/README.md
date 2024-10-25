@@ -80,8 +80,8 @@ You can also execute below command to configure your number
 ```
 In the command, replace "your-plivo-number" with your Plivo number and "[your-ngrok-subdomain].ngrok.app" with the Forwarding URL generated in step 3 (eg. "ws://2073-49-207-221-93.ngrok-free.app/stream").
 
-### 9. Place the call
-Place call on the Plivo number that we configured in the above step to talk to your VoiceBot 🤖.
+### 9. Testing your Application
+You are now all set to test your application and converse with a Voice Bot🤖. Just place a call to the Plivo number you have configured for your setup, and connect to your AI based Voice Agent.
 
 ## Application Workflow
 Voicebot coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
