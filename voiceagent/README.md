@@ -84,7 +84,7 @@ In the command, replace "your-plivo-number" with your Plivo number and "[your-ng
 You are now all set to test your application and converse with a Voice Agent. Just place a call to the Plivo number you have configured for your setup, and connect to your AI based Voice Agent.
 
 ## Application Workflow
-Voiceagent coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
+Voice agent coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
 ![Voiceagent Flow](./Workflow.png)
 
 ## Logs
