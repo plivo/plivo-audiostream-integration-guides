@@ -2,7 +2,7 @@
 
 This repo contains following guides:
 
-## Voice Bot
+## Voice Agent
 
 This project showcases a proof of concept (POC) that integrates Plivo's audio streaming with Deepgram for live transcription, OpenAI for generating conversational responses, and ElevenLabs for text-to-speech conversion. The system functions as a general assistant, capable of transcribing real-time audio, understanding and responding to user queries, and converting those responses back into audio. This end-to-end solution demonstrates the potential for creating intelligent, voice-interactive applications.
 
