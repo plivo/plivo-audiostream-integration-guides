@@ -34,7 +34,7 @@ def upload_xml(xml_string):
         "Accept": "application/vnd.github.v3+json"
     }
 
-    filename = "voicebot.xml"  # Change this to your desired filename
+    filename = "voiceagent.xml"  # Change this to your desired filename
 
     # Gist payload
     data = {
