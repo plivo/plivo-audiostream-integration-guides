@@ -34,7 +34,7 @@ def upload_xml(xml_string):
         "Accept": "application/vnd.github.v3+json"
     }
 
-    filename = "voicebot.xml"  # Change this to your desired filename
+    filename = "voiceagent.xml"  # Change this to your desired filename
 
     # Gist payload
     data = {
@@ -64,7 +64,7 @@ def upload_xml(xml_string):
 def create_application(xml_url):
     client = plivo.RestClient(CONFIG['auth_id'], CONFIG['auth_token'])
     response = client.applications.create(
-        app_name='voice-bot-application',  # Change this to your desired application name
+        app_name='voice-agent-application',  # Change this to your desired application name
         answer_url=xml_url,
         answer_method='GET'
     )

@@ -58,7 +58,7 @@ Update `config.json` to add uour credentials:
 If you do not have a GitHub token, you can generate one by following steps mentioned [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). When creating the token, please make sure that it has Read and Write permission for Gists
 
 ### 6. Define your chatbot's behavior
-In `server.py`, you can define the characteristics of your voice bot by updating the **system_msg**.
+In `server.py`, you can define the characteristics of your voice agent by updating the **system_msg**.
 ```
 system_msg = """You are John Doe, a chatbot assistant that helps in resolving general queries related to any fields.
 When someone says hello, you will greet them and answer their questions in a polite way.
@@ -81,11 +81,11 @@ You can also execute below command to configure your number
 In the command, replace "your-plivo-number" with your Plivo number and "[your-ngrok-subdomain].ngrok.app" with the Forwarding URL generated in step 3 (eg. "ws://2073-49-207-221-93.ngrok-free.app/stream").
 
 ### 9. Testing your Application
-You are now all set to test your application and converse with a Voice Bot🤖. Just place a call to the Plivo number you have configured for your setup, and connect to your AI based Voice Agent.
+You are now all set to test your application and converse with a Voice Agent. Just place a call to the Plivo number you have configured for your setup, and connect to your AI based Voice Agent.
 
 ## Application Workflow
-Voicebot coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
-![Voicebot Flow](./Workflow.png)
+Voice agent coordinates the data flow between multiple different services including Plivo Audio Streams, Deepgram, OpenAI and Eleven Labs:
+![Voiceagent Flow](./Workflow.png)
 
 ## Logs
 ![Logs](./demo.gif)
