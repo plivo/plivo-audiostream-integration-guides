@@ -6,7 +6,7 @@ import base64
 from elevenlabs.conversational_ai.conversation import AudioInterface
 import websockets
 
-class TwilioAudioInterface(AudioInterface):
+class PlivoAudioInterface(AudioInterface):
     def __init__(self, websocket):
         self.websocket = websocket
         self.output_queue = queue.Queue()
@@ -35,9 +35,9 @@ class TwilioAudioInterface(AudioInterface):
                 _ = self.output_queue.get(block=False)
         except queue.Empty:
             pass
-        asyncio.run(self._send_clear_message_to_twilio())
+        asyncio.run(self._send_clear_message_to_plivo())
 
-    async def handle_twilio_message(self, data):
+    async def handle_plivo_message(self, data):
         try:
             if data["event"] == "start":
                 self.stream_sid = data["start"]["streamSid"]
@@ -51,9 +51,9 @@ class TwilioAudioInterface(AudioInterface):
 
     def _output_thread(self):
         while not self.should_stop.is_set():
-            asyncio.run(self._send_audio_to_twilio())
+            asyncio.run(self._send_audio_to_plivo())
 
-    async def _send_audio_to_twilio(self):
+    async def _send_audio_to_plivo(self):
         try:
             audio = self.output_queue.get(timeout=0.2)
             audio_payload = base64.b64encode(audio).decode("utf-8")
@@ -68,9 +68,9 @@ class TwilioAudioInterface(AudioInterface):
         except Exception as e:
             print(f"Error sending audio: {e}")
 
-    async def _send_clear_message_to_twilio(self):
+    async def _send_clear_message_to_plivo(self):
         try:
             clear_message = {"event": "clear", "streamSid": self.stream_sid}
             await self.websocket.send_json(clear_message)
         except Exception as e:
-            print(f"Error sending clear message to Twilio: {e}")
+            print(f"Error sending clear message to plivo: {e}")

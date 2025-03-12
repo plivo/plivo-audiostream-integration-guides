@@ -1,7 +1,6 @@
-# Text to speech using elevenlabs ElevenLabs
+# Plivo Audio Streaming Integration with ElevenLabs Conversational Agent
 
-This project demonstrates a proof of concept (POC) for integrating Plivo's audio streaming with ElevenLabs for text-to-speech conversion.
-
+This project demonstrates a proof of concept (POC) for integrating Plivo's audio streaming with ElevenLabs Conversational AI Agent.
 
 ### Prerequisites
 Sign up for the following services and get an API key for each:
@@ -37,7 +36,8 @@ Update `config.json` to add uour credentials:
     "auth_id": "your_auth_id",
     "auth_token": "your_auth_token",
     "github_token": "your_github_token",
-    "elevenlabs_api_key": "your_elevenlabs_api_key"
+    "elevenlabs_api_key": "your_elevenlabs_api_key",
+    "elevenlabs_agent_id": "your_elevenlabs_agent_key"
 }
 ```
 If you do not have a GitHub token, you can generate one by following steps mentioned [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). When creating the token, please make sure that it has Read and Write permission for Gists
@@ -57,5 +57,4 @@ You can also execute below command to configure your number
 In the command, replace "your-plivo-number" with your Plivo number and "[your-ngrok-subdomain].ngrok.app" with the Forwarding URL generated in step 3 (eg. "ws://2073-49-207-221-93.ngrok-free.app/stream").
 
 ### 7. Testing your Application
-You are now all set to test your application . Just place a call to the Plivo number you have configured for your setup to test the flow.
-
+You are now all set to test your application and converse with a Voice Agent. Just place a call to the Plivo number you have configured for your setup, and connect to your AI based Voice Agent.
