@@ -1,0 +1,4 @@
+elevenlabs
+websockets==12.0
+asyncio==3.4.3
+plivo
