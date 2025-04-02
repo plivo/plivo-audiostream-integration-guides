@@ -56,5 +56,20 @@ You can also execute below command to configure your number
 ```
 In the command, replace "your-plivo-number" with your Plivo number and "[your-ngrok-subdomain].ngrok.app" with the Forwarding URL generated in step 3 (eg. "ws://2073-49-207-221-93.ngrok-free.app/stream").
 
-### 7. Testing your Application
+### 7. Setup voice agent
+You’ll need to configure your agent to use the correct audio format supported by Plivo
+
+* Configure TTS Output 
+  * Navigate to your agent settings 
+  * Go to the Voice Section 
+  * Select “μ-law 8000 Hz” from the dropdown
+![Configure TTS Output](./TTS-Output.png)
+	
+* Set Input Format 
+  * Navigate to your agent settings 
+  * Go to the Advanced Section 
+  * Select “μ-law 8000 Hz” for the input format
+![Set Input Format](./Input-Format.png)
+
+### 8. Testing your Application
 You are now all set to test your application and converse with a Voice Agent. Just place a call to the Plivo number you have configured for your setup, and connect to your AI based Voice Agent.
